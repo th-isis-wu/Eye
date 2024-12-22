@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EyeTrack</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1 class="title">EYE👍</h1>
+    
+    <div class="container">
+
+        <div class="circle outerCircle"></div>
+        <div class="circle innerCircle"></div>
+    </div>
+    
+    <script>
+
+        document.addEventListener('mousemove', (event) => {
+
+            const outerCircle = document.querySelector('.outerCircle');
+            const innerCircle = document.querySelector('.innerCircle');
+
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            let comX = ((event.clientX - centerX)/centerX) * 50 + 50 + '%';
+            let comY = ((event.clientY - centerY)/centerY) * 50 + 50 + '%';
+            
+            innerCircle.style.left = comX;
+            innerCircle.style.top = comY;
+  
+            const deltaX = 180-((event.clientX - centerX)/centerX * 90);
+            const deltaY = 180-((event.clientY - centerY)/centerY * 90);
+            
+            document.documentElement.style.setProperty('--deltaX', deltaX + 'deg');
+            document.documentElement.style.setProperty('--deltaY', deltaY + 'deg');
+        });
+
+    
+
+    </script>
+    
+    
+    
+    
+</body>
+</html>
