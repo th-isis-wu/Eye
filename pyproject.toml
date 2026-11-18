@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eye"
+version = "0.1.0"
+description = "이미지 공지와 스캔 강의자료를 읽어 주는 접근성 도우미"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "Pillow>=10.0",
+    "numpy>=1.24",
+    "pytesseract>=0.3.10",
+    "PyMuPDF>=1.23",
+    "pyttsx3>=2.90",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+eye = "eye.cli:main"
+
+[tool.setuptools]
+packages = ["eye"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
