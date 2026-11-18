@@ -24,7 +24,7 @@ def verify(result: Result, threshold: float = 60.0) -> list[Uncertainty]:
             out.append(Uncertainty(
                 kind="ambiguous_date",
                 text=r.raw,
-                message=f"{FIELD_NAMES[name]}의 '{r.raw}'는 {r.reason}입니다.",
+                message=f"{FIELD_NAMES[name]}의 '{r.raw}': {r.reason}",
                 options=opts,
                 chosen=D.format_date(r.chosen) if r.chosen else None,
                 field_name=name,

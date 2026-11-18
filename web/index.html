@@ -1,0 +1,222 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Eye 공지 읽기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<style>
+/* 한 줄 세로 흐름: 입력 → 진행 단계 → 핵심 정보 → 확인할 항목 → 전체 글. 손가락으로 누르기 쉬운 큰 버튼 */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --ink: #14202e;
+  --muted: #586473;
+  --line: #d5dbe2;
+  --accent: #1d4ed8;
+  --accent-ink: #ffffff;
+  --unsure: #b45309;
+  --unsure-bg: #fff4e0;
+  --ok: #15803d;
+  --font: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151c; --surface: #18212b; --ink: #e8edf2; --muted: #9aa7b5; --line: #2c3845;
+    --accent: #7aa2ff; --accent-ink: #0b1220; --unsure: #f5b04c; --unsure-bg: #3a2a12; --ok: #4ade80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151c; --surface: #18212b; --ink: #e8edf2; --muted: #9aa7b5; --line: #2c3845;
+  --accent: #7aa2ff; --accent-ink: #0b1220; --unsure: #f5b04c; --unsure-bg: #3a2a12; --ok: #4ade80;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font);
+  font-size: 17px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+main { max-width: 680px; margin: 0 auto; display: grid; gap: 18px; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.3; margin: 0; }
+h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.2rem; font-weight: 700; }
+p { margin: 0; }
+.lede { color: var(--muted); margin-top: 4px; }
+section { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.head-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.muted { color: var(--muted); font-size: 0.92rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* 버튼 */
+.btn {
+  font: inherit; font-weight: 600; min-height: 48px; padding: 10px 18px; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn:focus-visible, input:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn-row .btn { flex: 1 1 140px; }
+
+/* 입력 */
+.pick { position: relative; display: grid; place-items: center; gap: 6px; text-align: center; min-height: 128px;
+  border: 2px dashed var(--line); border-radius: var(--radius); padding: 18px; cursor: pointer; }
+.pick.over { border-color: var(--accent); }
+.pick strong { font-size: 1.15rem; color: var(--accent); }
+.pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.pick:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+label.text { display: grid; gap: 6px; font-weight: 600; }
+input.url, input.fix { font: inherit; min-height: 48px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--line);
+  background: var(--bg); color: var(--ink); width: 100%; min-width: 0; }
+.opts { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; }
+.opts label { display: inline-flex; gap: 8px; align-items: center; }
+input[type="range"] { accent-color: var(--accent); width: 140px; }
+input[type="checkbox"] { accent-color: var(--accent); width: 20px; height: 20px; }
+
+/* 진행 단계 */
+#steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+#steps li { display: grid; justify-items: center; gap: 2px; font-size: 0.72rem; color: var(--muted); text-align: center; word-break: keep-all; }
+#steps .num { font-size: 1.15rem; line-height: 1; }
+#steps li.done { color: var(--ok); }
+#steps li.active { color: var(--accent); font-weight: 700; }
+#status { font-weight: 600; min-height: 1.6em; }
+#preview { max-width: 100%; max-height: 260px; object-fit: contain; border-radius: 10px; border: 1px solid var(--line); justify-self: start; }
+
+/* 결과 */
+.badge { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; padding: 3px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+dl { margin: 0; display: grid; gap: 0; }
+.field { display: grid; grid-template-columns: 6.5em minmax(0, 1fr); gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.field:first-child { border-top: 0; }
+.field dt { font-weight: 700; color: var(--muted); }
+.field dd { margin: 0; overflow-wrap: anywhere; }
+.field.missing dd { color: var(--muted); }
+.field.unsure dd { color: var(--ink); }
+.chip { display: inline-block; font-size: 0.8rem; font-weight: 700; color: var(--unsure); background: var(--unsure-bg); padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.notice { background: var(--unsure-bg); color: var(--ink); border-left: 4px solid var(--unsure); padding: 10px 12px; border-radius: 8px; font-weight: 600; }
+#unsure { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.unsure-item { display: grid; gap: 10px; padding: 12px; border-radius: 12px; background: var(--unsure-bg); }
+.choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice-row .fix { flex: 1 1 160px; }
+.choice-row .btn { flex: 0 1 auto; }
+.btn.choice { flex: 1 1 220px; }
+.empty { color: var(--muted); }
+mark.unsure-word { background: var(--unsure-bg); color: var(--unsure); font-weight: 700; padding: 0 2px; border-radius: 4px; text-decoration: underline dotted; }
+#full { display: grid; gap: 10px; max-width: 65ch; }
+#full h4 { font-size: 1.1rem; }
+#full ul { margin: 0; padding-left: 1.2em; }
+.page-no { font-size: 0.85rem; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; border-top: 1px solid var(--line); padding-top: 8px; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 0.95rem; }
+th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; white-space: nowrap; }
+th { background: var(--bg); }
+.reader { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.reader .btn { flex: 1 1 90px; }
+#reader-pos { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 4.5em; text-align: center; }
+details summary { cursor: pointer; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
+.confirm { display: grid; gap: 10px; padding: 12px; border-radius: 12px; border: 1.5px solid var(--unsure); }
+footer { color: var(--muted); font-size: 0.88rem; text-align: center; }
+@media (max-width: 420px) {
+  .field { grid-template-columns: 1fr; gap: 2px; }
+  #steps li { font-size: 0.64rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<main>
+  <header>
+    <h1>Eye 공지 읽기</h1>
+    <p class="lede">이미지로 된 공지와 스캔 강의자료를 글자로 바꾸고, 행사명·일시·장소·신청 방법·마감부터 소리 내어 읽어 드립니다.</p>
+  </header>
+
+  <section aria-labelledby="in-title">
+    <h2 id="in-title">읽을 자료</h2>
+    <div class="pick" id="dropzone">
+      <strong>사진·캡처·PDF 고르기</strong>
+      <span class="muted">카드뉴스, 포스터 캡처, 강의자료 PDF. 카메라로 바로 찍어도 됩니다.</span>
+      <input id="file" type="file" accept="image/*,application/pdf,.pdf" aria-label="사진, 캡처 또는 PDF 고르기">
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="btn-sample" type="button">예시 포스터로 해 보기</button>
+    </div>
+    <label class="text" for="source-url">원래 게시글 주소 <span class="muted">(선택, 나중에 다시 열 수 있게)</span>
+      <input class="url" id="source-url" type="url" inputmode="url" placeholder="https://instagram.com/p/…" autocomplete="off">
+    </label>
+    <div class="opts">
+      <label><input type="checkbox" id="autoread" checked> 다 읽으면 바로 소리 내어 읽기</label>
+      <label for="rate">말하기 속도 <input type="range" id="rate" min="0.6" max="2" step="0.1" value="1"> <span id="rate-val">1.0배</span></label>
+    </div>
+  </section>
+
+  <section aria-labelledby="prog-title">
+    <h2 id="prog-title" class="sr-only">진행 상황</h2>
+    <ol id="steps" aria-label="처리 단계"></ol>
+    <p id="status" role="status" aria-live="polite"></p>
+    <img id="preview" alt="고른 이미지" hidden>
+  </section>
+
+  <section id="result" aria-labelledby="result-title">
+    <div class="head-row">
+      <h2 id="result-title" tabindex="-1">핵심 정보</h2>
+      <span class="badge" id="example-badge">예시 결과</span>
+    </div>
+    <div id="notices"></div>
+    <div id="key-wrap"><dl id="fields"></dl></div>
+    <div class="btn-row">
+      <button class="btn primary" id="btn-key" type="button">핵심 정보 듣기</button>
+      <button class="btn" id="btn-all" type="button">전체 읽기</button>
+      <button class="btn" id="btn-stop" type="button">멈춤</button>
+    </div>
+    <a class="btn" id="open-original" href="#" target="_blank" rel="noopener" hidden>원래 게시글 열기</a>
+  </section>
+
+  <section aria-labelledby="unsure-title">
+    <div class="head-row">
+      <h2 id="unsure-title">확인이 필요한 항목</h2>
+      <span class="badge" id="unsure-count"></span>
+    </div>
+    <p class="muted">두 가지로 읽히는 날짜는 골라 주시고, 확실하지 않은 글자는 맞는지 알려 주세요. 고른 내용은 다음 인식에 반영됩니다.</p>
+    <ul id="unsure"></ul>
+  </section>
+
+  <section aria-labelledby="full-title">
+    <div class="head-row">
+      <h2 id="full-title">전체 글</h2>
+      <button class="btn" id="btn-copy" type="button">글 복사</button>
+    </div>
+    <p class="muted">읽는 순서대로 정리했습니다. <mark class="unsure-word">이렇게</mark> 표시된 글자는 확실하지 않습니다.</p>
+    <div class="reader" role="group" aria-label="차례대로 읽기">
+      <button class="btn" id="btn-prev" type="button">이전 문단</button>
+      <span id="reader-pos" aria-live="polite">0 / 0</span>
+      <button class="btn" id="btn-next" type="button">다음 문단</button>
+    </div>
+    <div id="full"></div>
+  </section>
+
+  <section aria-labelledby="learn-title">
+    <details>
+      <summary id="learn-title">학습 기록</summary>
+      <dl id="learn"></dl>
+      <div class="btn-row"><button class="btn" id="btn-reset" type="button">기록 지우기</button></div>
+      <div class="confirm" id="reset-confirm" hidden>
+        <p>날짜 선택과 고친 글자 기록을 모두 지울까요?</p>
+        <div class="btn-row">
+          <button class="btn primary" id="btn-reset-yes" type="button">지우기</button>
+          <button class="btn" id="btn-reset-no" type="button">취소</button>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <footer>사진과 PDF는 이 기기 안에서만 처리되고 어디에도 보내지 않습니다. 학습 기록도 이 기기 브라우저에만 남습니다.</footer>
+</main>
+
+<script src="vendor/tesseract.min.js" charset="utf-8"></script>
+<script src="vendor/pdf.min.js" charset="utf-8"></script>
+<script src="eye.js" charset="utf-8"></script>
+<script src="app.js" charset="utf-8"></script>

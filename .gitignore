@@ -6,3 +6,6 @@ dist/
 .venv/
 *.읽기용.txt
 *.읽기용.pdf
+web/vendor/
+web/tessdata/
+web/cmaps/
